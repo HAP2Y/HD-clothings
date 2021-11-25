@@ -1,3 +1,4 @@
+import { mobile } from "../responsive";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -19,6 +20,7 @@ const Wrapper = styled.div`
   width: 25%;
   padding: 20px;
   background-color: white;
+  ${mobile({ width: "75%" })};
 `;
 
 const Title = styled.h1`
@@ -36,6 +38,7 @@ const Input = styled.input`
   min-width: 40%;
   margin: 10px 0;
   padding: 10px;
+  ${mobile({ padding: "17.5px" })};
 `;
 
 const Button = styled.button`
