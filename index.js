@@ -20,7 +20,7 @@ app.get("/api/test", () => {
 
 app.use(express.json());
 app.use("/api/auth", authRoute);
-// app.use("/api/user", userRoute);
+app.use("/api/user", userRoute);
 
 app.listen(process.env.PORT || 5000, () => {
     console.log("Backend server is running");
