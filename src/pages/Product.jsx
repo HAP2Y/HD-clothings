@@ -9,6 +9,9 @@ import { useLocation } from "react-router";
 import { useState } from "react";
 import { useEffect } from "react";
 import { publicRequest } from "../requestMethods";
+import axios from "axios";
+import { addProduct } from "../redux/cartRedux";
+import { useDispatch } from "react-redux";
 
 const Container = styled.div``;
 
@@ -127,21 +130,22 @@ const Product = () => {
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const getProduct = async () => {
       try {
         const res = await publicRequest.get("/product/find/" + id);
         setProduct(res.data);
-        console.log(res.data);
-      } catch {}
+        // console.log(res.data);
+      } catch { }
     };
     getProduct();
   }, [id]);
 
   const handleQuantity = (type) => {
     if (type === "dec") {
-      setQuantity(quantity - 1);
+      quantity > 1 && setQuantity(quantity - 1);
     } else {
       setQuantity(quantity + 1);
     }
@@ -149,7 +153,7 @@ const Product = () => {
 
   const handleClick = () => {
     //update cart
-    
+    dispatch(addProduct({ ...product, quantity, color, size }));
   }
 
   return (

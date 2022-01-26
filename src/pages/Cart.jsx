@@ -1,9 +1,16 @@
 import { Add, Remove } from "@material-ui/icons";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 import Announcement from "../components/Announcement";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { mobile } from "../responsive";
+import StripeCheckout from "react-stripe-checkout";
+import { useEffect, useState } from "react";
+import { userRequest } from "../requestMethods";
+import { useNavigate } from "react-router-dom";
+
+const KEY = process.env.REACT_APP_STRIPE;
 
 const Container = styled.div``;
 
@@ -153,6 +160,30 @@ const Button = styled.button`
 `;
 
 const Cart = () => {
+  const cart = useSelector(state => state.cart);
+
+  const [stripeToken, setStripeToken] = useState(null);
+  const history = useNavigate();
+
+  const onToken = (token) => {
+    setStripeToken(token);
+  }
+
+  useEffect(() => {
+    const makeRequest = async () => {
+      try {
+        const res = await userRequest.post("/checkout/payment", {
+          tokenId: stripeToken.id,
+          // amount: cart.total * 100,
+          amount: 500,
+        });
+        history("/success", { data: res.data });
+      } catch {
+      }
+    };
+    stripeToken && makeRequest();
+  }, [stripeToken, cart.total, history])
+
   return (
     <Container>
       <Announcement />
@@ -169,63 +200,40 @@ const Cart = () => {
         </Top>
         <Bottom>
           <Info>
-            <Product>
-              <ProductDetail>
-                <Image src="https://th.bing.com/th/id/OIP.opbAoRzLI4eHuje5RfnNFgHaJ4?pid=ImgDet&rs=1" />
-                <Details>
-                  <ProductName>
-                    <b>Product:</b> Jeans
-                  </ProductName>
-                  <ProductId>
-                    <b>ID:</b> 123456
-                  </ProductId>
-                  <ProductColor color="black" />
-                  <ProductSize>
-                    <b>Size:</b> XS
-                  </ProductSize>
-                </Details>
-              </ProductDetail>
-              <PriceDetail>
-                <ProductAmountContainer>
-                  <Add style={{ cursor: "pointer" }} />
-                  <ProductAmount>1</ProductAmount>
-                  <Remove style={{ cursor: "pointer" }} />
-                </ProductAmountContainer>
-                <ProductPrice>$20</ProductPrice>
-              </PriceDetail>
-            </Product>
+            {cart.products.map(product => (
+              <Product>
+                <ProductDetail>
+                  <Image src={product.img} />
+                  <Details>
+                    <ProductName>
+                      <b>Product:</b> {product.title}
+                    </ProductName>
+                    <ProductId>
+                      <b>ID:</b> {product._id}
+                    </ProductId>
+                    <ProductColor color={product.color} />
+                    <ProductSize>
+                      <b>Size:</b> {product.size}
+                    </ProductSize>
+                  </Details>
+                </ProductDetail>
+                <PriceDetail>
+                  <ProductAmountContainer>
+                    <Add style={{ cursor: "pointer" }} />
+                    <ProductAmount>{product.quantity}</ProductAmount>
+                    <Remove style={{ cursor: "pointer" }} />
+                  </ProductAmountContainer>
+                  <ProductPrice>${product.price * product.quantity}</ProductPrice>
+                </PriceDetail>
+              </Product>
+            ))}
             <Hr />
-            <Product>
-              <ProductDetail>
-                <Image src="https://th.bing.com/th/id/OIP.jFHom8_156FVaQma1XV25gHaHa?pid=ImgDet&rs=1" />
-                <Details>
-                  <ProductName>
-                    <b>Product:</b> AE Jeans
-                  </ProductName>
-                  <ProductId>
-                    <b>ID:</b> 548198
-                  </ProductId>
-                  <ProductColor color="gray" />
-                  <ProductSize>
-                    <b>Size:</b> M
-                  </ProductSize>
-                </Details>
-              </ProductDetail>
-              <PriceDetail>
-                <ProductAmountContainer>
-                  <Add style={{ cursor: "pointer" }} />
-                  <ProductAmount>1</ProductAmount>
-                  <Remove style={{ cursor: "pointer" }} />
-                </ProductAmountContainer>
-                <ProductPrice>$45</ProductPrice>
-              </PriceDetail>
-            </Product>
           </Info>
           <Summary>
             <SummaryTitle>Order Summary</SummaryTitle>
             <SummaryItem>
               <SummaryItemText>SubTotal</SummaryItemText>
-              <SummaryItemPrice>$65</SummaryItemPrice>
+              <SummaryItemPrice>${cart.total}</SummaryItemPrice>
             </SummaryItem>
             <SummaryItem>
               <SummaryItemText>Estimated Shipping</SummaryItemText>
@@ -237,9 +245,20 @@ const Cart = () => {
             </SummaryItem>
             <SummaryItem type="total">
               <SummaryItemText>Total</SummaryItemText>
-              <SummaryItemPrice>$65</SummaryItemPrice>
+              <SummaryItemPrice>${cart.total}</SummaryItemPrice>
             </SummaryItem>
-            <Button>Pay Now</Button>
+            <StripeCheckout
+              name=".HD."
+              image="https://media.wired.com/photos/5c9040ee4950d24718d6da99/1:1/w_1800,h_1800,c_limit/shoppingcart-1066110386.jpg"
+              billingAddress
+              shippingAddress
+              description={`Your total is $${cart.total}`}
+              amount={cart.total * 100}
+              token={onToken}
+              stripeKey={KEY}
+            >
+              <Button>Pay Now</Button>
+            </StripeCheckout>
           </Summary>
         </Bottom>
       </Wrapper>
