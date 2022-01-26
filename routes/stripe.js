@@ -1,5 +1,8 @@
 const router = require("express").Router();
+const dotenv = require("dotenv");
+dotenv.config();
 const stripe = require("stripe")(process.env.STRIPE_KEY);
+// const stripe = require("stripe")("sk_test_51KAjLrA2gJVoPV745fg7wNXZFpjv4j1X3h1Nim2FiYP9sks7pHeAogiGWnX4PTCr1vBPgYR9KNRIjkkCRZtBll3z00hoBg4kAh");
 
 router.post("/payment", async (req, res) => {
   stripe.charges.create(
